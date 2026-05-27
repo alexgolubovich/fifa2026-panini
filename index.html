@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1226">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>FIFA 2026 Panini — моя коллекция</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="view-banner" class="view-banner hidden">
+  👀 Режим просмотра — изменения отключены. Это снимок коллекции владельца.
+  <span id="view-banner-date"></span>
+</div>
+
+<header class="hero">
+  <div class="hero-bg">
+    <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="g1" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#ff4081" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#1a1f3a" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="trophyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffd54f"/>
+          <stop offset="100%" stop-color="#ff8f00"/>
+        </linearGradient>
+      </defs>
+      <circle cx="200" cy="120" r="220" fill="url(#g1)"/>
+      <circle cx="1000" cy="280" r="280" fill="url(#g1)"/>
+
+      <!-- pentagons pattern (football) -->
+      <g opacity="0.06" fill="#fff">
+        <polygon points="100,40 130,50 130,80 100,90 70,80 70,50"/>
+        <polygon points="950,80 980,90 980,120 950,130 920,120 920,90"/>
+        <polygon points="600,330 630,340 630,370 600,380 570,370 570,340"/>
+        <polygon points="250,330 280,340 280,370 250,380 220,370 220,340"/>
+        <polygon points="1100,200 1130,210 1130,240 1100,250 1070,240 1070,210"/>
+      </g>
+
+      <!-- trophy -->
+      <g transform="translate(560, 60)" opacity="0.85">
+        <path d="M40 0 Q40 -8 48 -8 L 32 -8 Q40 -8 40 0
+                 M -10 0 L 90 0 L 85 30 Q85 60 60 70 L60 90 L70 90 L70 100 L10 100 L10 90 L20 90 L20 70 Q15 60 -5 30 Z
+                 M -10 10 Q -30 10 -30 30 Q -30 50 -5 55
+                 M 90 10 Q 110 10 110 30 Q 110 50 85 55"
+              fill="url(#trophyGrad)" stroke="#fff" stroke-width="1.5" stroke-opacity="0.4"/>
+        <ellipse cx="40" cy="100" rx="35" ry="6" fill="#ff8f00"/>
+        <rect x="20" y="100" width="40" height="14" fill="#ffc107"/>
+        <rect x="10" y="114" width="60" height="10" fill="#ff8f00"/>
+      </g>
+    </svg>
+  </div>
+  <div class="container hero-content">
+    <div class="hero-badge">⚽ FIFA WORLD CUP 2026</div>
+    <h1>Моя коллекция Panini</h1>
+    <p class="subtitle">Канада · Мексика · США</p>
+  </div>
+</header>
+
+<section class="stats-bar">
+  <div class="container">
+    <div class="stat-block big">
+      <div class="stat-value" id="stat-total">0 / 0</div>
+      <div class="stat-label">Всего собрано</div>
+      <div class="progress"><div class="progress-fill" id="progress-total"></div></div>
+      <div class="stat-percent" id="stat-percent">0%</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-block">
+        <div class="stat-value" id="stat-teams">0 / 48</div>
+        <div class="stat-label">Команд полностью</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-players">0 / 960</div>
+        <div class="stat-label">Игроки</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-specials">0 / 20</div>
+        <div class="stat-label">Спец-стикеры</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-cc">0 / 12</div>
+        <div class="stat-label">Coca-Cola</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-missing">0</div>
+        <div class="stat-label">Осталось</div>
+      </div>
+    </div>
+
+    <div class="leaderboard">
+      <div class="lb-block">
+        <div class="lb-title">🏆 Топ-3 команды</div>
+        <ol class="lb-list" id="lb-top"></ol>
+      </div>
+      <div class="lb-block">
+        <div class="lb-title">😢 Аутсайдеры</div>
+        <ol class="lb-list" id="lb-bottom"></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="controls">
+  <div class="container">
+    <div class="filters-row">
+      <div class="filters">
+        <button class="btn-filter active" data-filter="all">Все</button>
+        <button class="btn-filter" data-filter="incomplete">Неполные</button>
+        <button class="btn-filter" data-filter="complete">Полные</button>
+      </div>
+      <select id="group-filter" class="group-select">
+        <option value="all">Все группы</option>
+        <option value="A">Группа A</option>
+        <option value="B">Группа B</option>
+        <option value="C">Группа C</option>
+        <option value="D">Группа D</option>
+        <option value="E">Группа E</option>
+        <option value="F">Группа F</option>
+        <option value="G">Группа G</option>
+        <option value="H">Группа H</option>
+        <option value="I">Группа I</option>
+        <option value="J">Группа J</option>
+        <option value="K">Группа K</option>
+        <option value="L">Группа L</option>
+        <option value="specials">Спец-стикеры</option>
+        <option value="cc">Coca-Cola</option>
+      </select>
+    </div>
+    <div class="search">
+      <input type="text" id="search-input" placeholder="🔍 Поиск страны (Испания, MEX, Brazil...)">
+    </div>
+    <div class="display-options">
+      <label class="toggle">
+        <input type="checkbox" id="compact-collected" checked>
+        <span>Сжать собранные</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="hide-collected">
+        <span>Скрыть собранные</span>
+      </label>
+      <button id="btn-collapse-all" class="btn-action small">Свернуть всё</button>
+      <button id="btn-expand-all" class="btn-action small">Развернуть всё</button>
+    </div>
+    <div class="actions">
+      <button id="btn-bulk" class="btn-action">Массовый ввод</button>
+      <button id="btn-history" class="btn-action">История 📅</button>
+      <button id="btn-download" class="btn-action">Скачать .json</button>
+      <button id="btn-export" class="btn-action">Экспорт</button>
+      <button id="btn-import" class="btn-action">Импорт</button>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div id="all-cards"></div>
+</main>
+
+<dialog id="history-dialog">
+  <h3>История версий 📅</h3>
+  <p>Раз в день сохраняется автоматический снимок коллекции. Восстановление вернёт состояние на выбранную дату (текущее тоже сначала запишется в историю).</p>
+  <div id="history-list" class="history-list"></div>
+  <div class="dialog-actions">
+    <button id="history-close">Закрыть</button>
+  </div>
+</dialog>
+
+<dialog id="confirm-dialog">
+  <h3>Убрать стикер?</h3>
+  <p id="confirm-text">Вы уверены, что хотите снять отметку?</p>
+  <div class="dialog-actions">
+    <button id="confirm-yes" class="btn-danger">Убрать</button>
+    <button id="confirm-no">Отмена</button>
+  </div>
+</dialog>
+
+<dialog id="bulk-dialog">
+  <h3>Массовый ввод</h3>
+  <p>Введите коды стикеров через пробел или запятую. Примеры: <code>MEX 1, MEX 2, BRA 10</code>, <code>FWC5</code>, <code>CC1</code>, <code>00</code>.</p>
+  <textarea id="bulk-input" rows="8" placeholder="MEX 1, MEX 2, BRA 10, CC1, FWC5..."></textarea>
+  <div class="dialog-actions">
+    <button id="bulk-add">Добавить</button>
+    <button id="bulk-remove">Удалить</button>
+    <button id="bulk-close">Отмена</button>
+  </div>
+</dialog>
+
+<dialog id="import-dialog">
+  <h3>Импорт коллекции</h3>
+  <p>Вставьте JSON, полученный из «Экспорт»:</p>
+  <textarea id="import-input" rows="8"></textarea>
+  <div class="dialog-actions">
+    <button id="import-apply">Применить</button>
+    <button id="import-close">Отмена</button>
+  </div>
+</dialog>
+
+<dialog id="export-dialog">
+  <h3>Экспорт коллекции</h3>
+  <p>Скопируйте JSON для бэкапа:</p>
+  <textarea id="export-output" rows="8" readonly></textarea>
+  <div class="dialog-actions">
+    <button id="export-copy">Скопировать</button>
+    <button id="export-close">Закрыть</button>
+  </div>
+</dialog>
+
+<script src="data.js"></script>
+<script src="view-state.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
