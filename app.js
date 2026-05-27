@@ -948,19 +948,12 @@ function applyViewModeUi() {
     const dateEl = document.getElementById('view-banner-date');
     if (dateEl && d) dateEl.textContent = `· обновлено ${d}`;
   }
-  // Hide editing UI
-  for (const id of ['btn-bulk', 'btn-history', 'btn-download', 'btn-export', 'btn-import',
-                    'compact-collected', 'hide-collected', 'btn-collapse-all', 'btn-expand-all']) {
+  // Hide editing UI (keep display-only controls: compact/hide collected, collapse/expand)
+  for (const id of ['btn-bulk', 'btn-history', 'btn-download', 'btn-export', 'btn-import']) {
     const el = document.getElementById(id);
-    if (!el) continue;
-    if (el.tagName === 'INPUT') {
-      const lbl = el.closest('label');
-      if (lbl) lbl.classList.add('hidden');
-    } else {
-      el.classList.add('hidden');
-    }
+    if (el) el.classList.add('hidden');
   }
-  // Hide display-options and actions rows entirely
+  // Hide rows that ended up empty
   document.querySelectorAll('.display-options, .actions').forEach(row => {
     if (row.querySelectorAll(':scope > *:not(.hidden)').length === 0) {
       row.classList.add('hidden');
