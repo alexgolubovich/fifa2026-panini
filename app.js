@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'fifa2026_collection_v1';
 const STORAGE_PREFILL_KEY = 'fifa2026_prefill_applied_v1';
 const STORAGE_PREFILL_V2_KEY = 'fifa2026_prefill_applied_v2';
+const STORAGE_PREFILL_V3_KEY = 'fifa2026_prefill_applied_v3';
 const STORAGE_UI_KEY = 'fifa2026_ui_v1';
 const STORAGE_SNAPSHOTS_KEY = 'fifa2026_snapshots_v1';
 const SNAPSHOT_RETENTION = 60; // keep last 60 daily snapshots
@@ -57,6 +58,24 @@ function loadState() {
     saveState();
     localStorage.setItem(STORAGE_PREFILL_V2_KEY, '1');
   }
+
+  // V3 migration: paper-list corrections (~170 new stickers). REPLACES team/specials
+  // state with the new PREFILL so old extra "have" entries get cleared too.
+  // CC stickers are NOT touched so user's CC progress is preserved.
+  if (!localStorage.getItem(STORAGE_PREFILL_V3_KEY)) {
+    replacePrefill();
+    saveState();
+    localStorage.setItem(STORAGE_PREFILL_V3_KEY, '1');
+  }
+}
+
+function replacePrefill() {
+  // Drop existing team stickers and specials, then re-apply PREFILL
+  for (const k of Object.keys(state.collected)) {
+    if (k.startsWith('CC')) continue; // keep Coca-Cola
+    delete state.collected[k];
+  }
+  applyPrefill();
 }
 
 function applyPrefill() {
