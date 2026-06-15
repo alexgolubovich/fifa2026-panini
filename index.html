@@ -61,7 +61,16 @@
   </div>
 </header>
 
-<section class="stats-bar">
+<nav class="tabs-bar">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="collection">📋 Коллекция</button>
+      <button class="tab-btn" data-tab="dups">🔁 Повторки</button>
+    </div>
+  </div>
+</nav>
+
+<section class="stats-bar" id="stats-collection">
   <div class="container">
     <div class="stat-block big">
       <div class="stat-value" id="stat-total">0 / 0</div>
@@ -87,10 +96,6 @@
         <div class="stat-label">Coca-Cola</div>
       </div>
       <div class="stat-block">
-        <div class="stat-value" id="stat-dups">0</div>
-        <div class="stat-label">Повторки</div>
-      </div>
-      <div class="stat-block">
         <div class="stat-value" id="stat-missing">0</div>
         <div class="stat-label">Осталось</div>
       </div>
@@ -104,6 +109,41 @@
       <div class="lb-block">
         <div class="lb-title">😢 Аутсайдеры</div>
         <ol class="lb-list" id="lb-bottom"></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-bar hidden" id="stats-dups">
+  <div class="container">
+    <div class="stat-block big dup-big">
+      <div class="stat-value" id="stat-dups-total">0</div>
+      <div class="stat-label">Всего повторок</div>
+      <div class="stat-percent" id="stat-dups-unique">0 уникальных</div>
+    </div>
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-block">
+        <div class="stat-value" id="stat-dups-teams">0 / 48</div>
+        <div class="stat-label">Команд с повторками</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-dups-max">0</div>
+        <div class="stat-label">Макс. копий одного</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-dups-fwc">0</div>
+        <div class="stat-label">FWC-повторки</div>
+      </div>
+    </div>
+
+    <div class="leaderboard">
+      <div class="lb-block">
+        <div class="lb-title">🔝 Топ-3 по повторкам</div>
+        <ol class="lb-list" id="lb-dups-top"></ol>
+      </div>
+      <div class="lb-block">
+        <div class="lb-title">📉 Меньше всего</div>
+        <ol class="lb-list" id="lb-dups-bottom"></ol>
       </div>
     </div>
   </div>
@@ -133,7 +173,6 @@
         <option value="L">Группа L</option>
         <option value="specials">Спец-стикеры</option>
         <option value="cc">Coca-Cola</option>
-        <option value="dups">Повторки</option>
       </select>
     </div>
     <div class="search">

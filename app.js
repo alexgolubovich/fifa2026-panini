@@ -20,6 +20,7 @@ let state = {
   collapsedGroups: {},
   collapsedTeams: {},
   readOnly: IS_VIEW_MODE,
+  activeTab: 'collection',
 };
 
 function loadState() {
@@ -44,6 +45,7 @@ function loadState() {
       if (typeof ui.hideCollected === 'boolean') state.hideCollected = ui.hideCollected;
       if (ui.collapsedGroups) state.collapsedGroups = ui.collapsedGroups;
       if (ui.collapsedTeams) state.collapsedTeams = ui.collapsedTeams;
+      if (ui.activeTab) state.activeTab = ui.activeTab;
     }
   } catch (e) { console.warn('Failed to load ui', e); }
 
@@ -188,6 +190,7 @@ function saveUi() {
     hideCollected: state.hideCollected,
     collapsedGroups: state.collapsedGroups,
     collapsedTeams: state.collapsedTeams,
+    activeTab: state.activeTab,
   }));
 }
 
@@ -283,11 +286,102 @@ function refreshStats() {
   document.getElementById('stat-players').textContent = `${players} / 960`;
   document.getElementById('stat-specials').textContent = `${specials} / ${ALBUM.specials.length}`;
   document.getElementById('stat-cc').textContent = `${cc} / ${ALBUM.cocaCola.length}`;
-  const dupEl = document.getElementById('stat-dups');
-  if (dupEl) dupEl.textContent = `${dupTotalCount()}`;
   document.getElementById('stat-missing').textContent = `${TOTAL_STICKERS - total}`;
 
   refreshLeaderboards();
+  refreshDupStats();
+}
+
+function refreshDupStats() {
+  if (typeof DUPLICATES === 'undefined') return;
+  const totalEl = document.getElementById('stat-dups-total');
+  if (!totalEl) return;
+  let total = 0;
+  let unique = 0;
+  let maxCopies = 0;
+  let teamsWithDups = 0;
+  let fwcDups = 0;
+  for (const code in DUPLICATES) {
+    const t = DUPLICATES[code];
+    const keys = Object.keys(t);
+    if (keys.length > 0 && code !== 'FWC') teamsWithDups++;
+    for (const k of keys) {
+      const c = t[k];
+      total += c;
+      unique++;
+      if (c > maxCopies) maxCopies = c;
+      if (code === 'FWC') fwcDups += c;
+    }
+  }
+  totalEl.textContent = total;
+  document.getElementById('stat-dups-unique').textContent = `${unique} уникальных`;
+  document.getElementById('stat-dups-teams').textContent = `${teamsWithDups} / 48`;
+  document.getElementById('stat-dups-max').textContent = `×${maxCopies}`;
+  document.getElementById('stat-dups-fwc').textContent = `${fwcDups}`;
+
+  // Dup leaderboards
+  const teamList = Object.keys(ALBUM.teams).map(code => {
+    const t = DUPLICATES[code] || {};
+    let count = 0;
+    for (const k in t) count += t[k];
+    return { code, name: ALBUM.teams[code].name, flag: ALBUM.teams[code].flag, count };
+  });
+  const top = [...teamList].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, 3);
+  const bottom = [...teamList].sort((a, b) => a.count - b.count || a.name.localeCompare(b.name)).slice(0, 3);
+
+  const renderDupList = (id, items, dim) => {
+    const ul = document.getElementById(id);
+    if (!ul) return;
+    ul.innerHTML = '';
+    for (const it of items) {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="lb-flag">${it.flag}</span>
+        <span class="lb-name">${it.name}</span>
+        <span class="lb-pct ${dim ? 'dim' : ''}" style="color: ${dim ? '' : '#ffc107'}">${it.count} шт.</span>
+      `;
+      li.style.cursor = 'pointer';
+      li.addEventListener('click', () => {
+        switchTab('dups');
+        const card = document.querySelector(`[data-team-code="__dup_${it.code}__"]`);
+        if (card) {
+          card.classList.remove('collapsed');
+          state.collapsedTeams[`__dup_${it.code}__`] = false;
+          saveUi();
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      ul.appendChild(li);
+    }
+  };
+  renderDupList('lb-dups-top', top, false);
+  renderDupList('lb-dups-bottom', bottom, true);
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  saveUi();
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.getElementById('stats-collection').classList.toggle('hidden', tab !== 'collection');
+  document.getElementById('stats-dups').classList.toggle('hidden', tab !== 'dups');
+
+  // Toggle card visibility
+  document.querySelectorAll('.group-section').forEach(sec => {
+    const isDup = sec.dataset.group === 'dups';
+    if (tab === 'dups') {
+      sec.classList.toggle('hidden', !isDup);
+    } else {
+      sec.classList.toggle('hidden', isDup);
+    }
+  });
+
+  // Hide filters that don't apply to dups tab
+  const collFilters = document.querySelector('.filters-row');
+  const dispOpts = document.querySelector('.display-options');
+  if (collFilters) collFilters.style.display = tab === 'dups' ? 'none' : '';
+  if (dispOpts) dispOpts.style.display = tab === 'dups' ? 'none' : '';
 }
 
 function refreshLeaderboards() {
@@ -641,7 +735,7 @@ function makeDupCard(code) {
     const el = document.createElement('div');
     el.className = 'sticker dup';
     if (state.compactCollected) el.classList.add('mini');
-    el.dataset.count = '×' + dups[n];
+    el.dataset.count = 'x' + dups[n];
     const label = isFwc ? `FWC${n}` : n;
     if (isFwc) {
       el.innerHTML = `<span class="sticker-num">FWC${n}</span>`;
@@ -885,6 +979,10 @@ function rebuildAllBodies() {
 }
 
 function setupEvents() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
   document.querySelectorAll('.btn-filter').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
@@ -1122,6 +1220,7 @@ function init() {
   buildAll();
   refreshStats();
   setupEvents();
+  switchTab(state.activeTab || 'collection');
 }
 
 init();
