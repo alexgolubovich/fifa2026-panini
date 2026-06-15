@@ -242,6 +242,22 @@ function ccHaveCount() {
   return have;
 }
 
+function dupTotalCount() {
+  if (typeof DUPLICATES === 'undefined') return 0;
+  let n = 0;
+  for (const code in DUPLICATES) {
+    for (const k in DUPLICATES[code]) n += DUPLICATES[code][k];
+  }
+  return n;
+}
+
+function teamDupCount(code) {
+  if (typeof DUPLICATES === 'undefined' || !DUPLICATES[code]) return 0;
+  let n = 0;
+  for (const k in DUPLICATES[code]) n += DUPLICATES[code][k];
+  return n;
+}
+
 function totalHaveCount() {
   let n = 0;
   for (const k in state.collected) if (state.collected[k]) n++;
@@ -267,6 +283,8 @@ function refreshStats() {
   document.getElementById('stat-players').textContent = `${players} / 960`;
   document.getElementById('stat-specials').textContent = `${specials} / ${ALBUM.specials.length}`;
   document.getElementById('stat-cc').textContent = `${cc} / ${ALBUM.cocaCola.length}`;
+  const dupEl = document.getElementById('stat-dups');
+  if (dupEl) dupEl.textContent = `${dupTotalCount()}`;
   document.getElementById('stat-missing').textContent = `${TOTAL_STICKERS - total}`;
 
   refreshLeaderboards();
@@ -574,9 +592,111 @@ function makeSpecialCard(kind) {
   return card;
 }
 
+function makeDupCard(code) {
+  const isFwc = code === 'FWC';
+  const teamMeta = isFwc ? null : ALBUM.teams[code];
+  const dups = DUPLICATES[code] || {};
+  const nums = Object.keys(dups).map(n => parseInt(n, 10)).sort((a, b) => a - b);
+  const total = nums.reduce((s, n) => s + dups[n], 0);
+  if (total === 0) return null;
+
+  const card = document.createElement('div');
+  card.className = 'team-card';
+  card.dataset.teamCode = `__dup_${code}__`;
+  const teamKey = `__dup_${code}__`;
+  if (state.collapsedTeams[teamKey]) card.classList.add('collapsed');
+
+  const name = isFwc ? 'Спец-стикеры (FWC)' : teamMeta.name;
+  const flag = isFwc ? '⭐' : teamMeta.flag;
+  const meta = isFwc ? 'foil / FIFA Museum / intro' : `${code} · ${teamMeta.nameEn}`;
+
+  const header = document.createElement('div');
+  header.className = 'team-header';
+  header.innerHTML = `
+    <div class="team-info">
+      <div class="team-flag">${flag}</div>
+      <div class="team-name">
+        <h2>${name}</h2>
+        <span class="team-meta">${meta}</span>
+      </div>
+    </div>
+    <div class="team-progress">
+      <div class="team-count-row">
+        <span class="team-count"><span class="accent">${total}</span> шт.</span>
+      </div>
+    </div>
+    <span class="team-chevron">▼</span>
+  `;
+  header.addEventListener('click', () => {
+    card.classList.toggle('collapsed');
+    state.collapsedTeams[teamKey] = card.classList.contains('collapsed');
+    saveUi();
+  });
+
+  const body = document.createElement('div');
+  body.className = 'team-body';
+  const grid = document.createElement('div');
+  grid.className = 'sticker-grid';
+  for (const n of nums) {
+    const el = document.createElement('div');
+    el.className = 'sticker dup';
+    if (state.compactCollected) el.classList.add('mini');
+    el.dataset.count = '×' + dups[n];
+    const label = isFwc ? `FWC${n}` : n;
+    if (isFwc) {
+      el.innerHTML = `<span class="sticker-num">FWC${n}</span>`;
+      el.classList.add('special');
+    } else {
+      el.innerHTML = `<span class="sticker-prefix">${code}</span><span class="sticker-num">${n}</span>`;
+    }
+    grid.appendChild(el);
+  }
+  body.appendChild(grid);
+  card.appendChild(header);
+  card.appendChild(body);
+  return card;
+}
+
 function buildAll() {
   const container = document.getElementById('all-cards');
   container.innerHTML = '';
+
+  // Duplicates section
+  if (typeof DUPLICATES !== 'undefined' && dupTotalCount() > 0) {
+    const dupSec = document.createElement('div');
+    dupSec.className = 'group-section';
+    dupSec.dataset.group = 'dups';
+    if (state.collapsedGroups['dups']) dupSec.classList.add('collapsed');
+    const total = dupTotalCount();
+    dupSec.innerHTML = `
+      <div class="group-header">
+        <div class="group-header-left">
+          <span class="group-title">Мои повторки 🔁</span>
+        </div>
+        <span class="group-summary"><span class="accent">${total}</span> шт. для обмена</span>
+        <span class="group-chevron">▼</span>
+      </div>
+      <div class="group-body">
+        <div class="dup-hint">Жёлтые стикеры — это карточки, которых у меня больше одной. Цифра в красном кружке — сколько копий доступно для обмена.</div>
+      </div>
+    `;
+    dupSec.querySelector('.group-header').addEventListener('click', () => {
+      dupSec.classList.toggle('collapsed');
+      state.collapsedGroups['dups'] = dupSec.classList.contains('collapsed');
+      saveUi();
+    });
+    const dupBody = dupSec.querySelector('.group-body');
+    // Render teams in original group order (A-L), then FWC at end
+    for (const codes of Object.values(ALBUM.groups)) {
+      for (const code of codes) {
+        const card = makeDupCard(code);
+        if (card) dupBody.appendChild(card);
+      }
+    }
+    const fwcCard = makeDupCard('FWC');
+    if (fwcCard) dupBody.appendChild(fwcCard);
+    container.appendChild(dupSec);
+  }
 
   // Specials section
   const specSec = document.createElement('div');
@@ -669,6 +789,20 @@ function applyFilter() {
 
   document.querySelectorAll('.team-card').forEach(card => {
     const code = card.dataset.teamCode;
+    if (code.startsWith('__dup_')) {
+      // Duplicate cards
+      let visible = true;
+      if (groupFilter !== 'all' && groupFilter !== 'dups') visible = false;
+      if (search) {
+        const teamCode = code.replace(/^__dup_(.+)__$/, '$1');
+        const meta = teamCode === 'FWC'
+          ? 'спец fwc foil повторки'
+          : `${teamCode} ${ALBUM.teams[teamCode]?.name || ''} ${ALBUM.teams[teamCode]?.nameEn || ''}`;
+        if (!meta.toLowerCase().includes(search)) visible = false;
+      }
+      card.classList.toggle('hidden', !visible);
+      return;
+    }
     if (code.startsWith('__')) {
       // specials/cc — only show if matches search/group
       const isSpec = code === '__specials__';
@@ -702,10 +836,10 @@ function applyFilter() {
     if (filter === 'incomplete' && have === 20) visible = false;
     if (filter === 'complete' && have !== 20) visible = false;
 
-    if (groupFilter !== 'all' && groupFilter !== 'specials' && groupFilter !== 'cc') {
+    if (groupFilter !== 'all' && groupFilter !== 'specials' && groupFilter !== 'cc' && groupFilter !== 'dups') {
       const inGroup = ALBUM.groups[groupFilter] && ALBUM.groups[groupFilter].includes(code);
       if (!inGroup) visible = false;
-    } else if (groupFilter === 'specials' || groupFilter === 'cc') {
+    } else if (groupFilter === 'specials' || groupFilter === 'cc' || groupFilter === 'dups') {
       visible = false;
     }
 

@@ -717,6 +717,53 @@ dialog textarea:focus { border-color: var(--primary); }
 
 .hidden { display: none !important; }
 
+/* DUPLICATES */
+.sticker.dup {
+  background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+  border-color: #ffc107;
+  color: #1a0f00;
+}
+
+.sticker.dup::before {
+  content: attr(data-count);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff5252;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  line-height: 1.2;
+}
+
+.sticker.dup.mini::before {
+  font-size: 8px;
+  padding: 1px 4px;
+  min-width: 14px;
+  top: -4px;
+  right: -4px;
+}
+
+.sticker.dup .sticker-num,
+.sticker.dup .sticker-prefix { color: #1a0f00; }
+
+.sticker.dup::after { display: none; }
+
+.dup-hint {
+  background: rgba(255, 193, 7, 0.10);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #ffd54f;
+  margin-bottom: 10px;
+}
+
 /* VIEW-ONLY MODE */
 .view-banner {
   background: linear-gradient(90deg, #ffc107, #ff8f00);
