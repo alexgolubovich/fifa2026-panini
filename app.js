@@ -11,6 +11,7 @@ const STORAGE_PREFILL_V9_KEY = 'fifa2026_prefill_applied_v9';
 const STORAGE_PREFILL_V10_KEY = 'fifa2026_prefill_applied_v10';
 const STORAGE_PREFILL_V11_KEY = 'fifa2026_prefill_applied_v11';
 const STORAGE_PREFILL_V12_KEY = 'fifa2026_prefill_applied_v12';
+const STORAGE_PREFILL_V13_KEY = 'fifa2026_prefill_applied_v13';
 const STORAGE_UI_KEY = 'fifa2026_ui_v1';
 const STORAGE_SNAPSHOTS_KEY = 'fifa2026_snapshots_v1';
 const SNAPSHOT_RETENTION = 60; // keep last 60 daily snapshots
@@ -141,6 +142,13 @@ function loadState() {
     replacePrefill();
     saveState();
     localStorage.setItem(STORAGE_PREFILL_V12_KEY, '1');
+  }
+
+  // V13 migration: swap batch 14 received (+CZE2, USA11, PAR6/17, FWC17 foil).
+  if (!localStorage.getItem(STORAGE_PREFILL_V13_KEY)) {
+    replacePrefill();
+    saveState();
+    localStorage.setItem(STORAGE_PREFILL_V13_KEY, '1');
   }
 }
 
