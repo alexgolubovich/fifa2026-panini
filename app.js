@@ -9,6 +9,7 @@ const STORAGE_PREFILL_V7_KEY = 'fifa2026_prefill_applied_v7';
 const STORAGE_PREFILL_V8_KEY = 'fifa2026_prefill_applied_v8';
 const STORAGE_PREFILL_V9_KEY = 'fifa2026_prefill_applied_v9';
 const STORAGE_PREFILL_V10_KEY = 'fifa2026_prefill_applied_v10';
+const STORAGE_PREFILL_V11_KEY = 'fifa2026_prefill_applied_v11';
 const STORAGE_UI_KEY = 'fifa2026_ui_v1';
 const STORAGE_SNAPSHOTS_KEY = 'fifa2026_snapshots_v1';
 const SNAPSHOT_RETENTION = 60; // keep last 60 daily snapshots
@@ -125,6 +126,13 @@ function loadState() {
     replacePrefill();
     saveState();
     localStorage.setItem(STORAGE_PREFILL_V10_KEY, '1');
+  }
+
+  // V11 migration: swap batch 12 received (+15 new, +8 dups).
+  if (!localStorage.getItem(STORAGE_PREFILL_V11_KEY)) {
+    replacePrefill();
+    saveState();
+    localStorage.setItem(STORAGE_PREFILL_V11_KEY, '1');
   }
 }
 
