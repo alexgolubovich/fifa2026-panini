@@ -12,6 +12,7 @@ const STORAGE_PREFILL_V10_KEY = 'fifa2026_prefill_applied_v10';
 const STORAGE_PREFILL_V11_KEY = 'fifa2026_prefill_applied_v11';
 const STORAGE_PREFILL_V12_KEY = 'fifa2026_prefill_applied_v12';
 const STORAGE_PREFILL_V13_KEY = 'fifa2026_prefill_applied_v13';
+const STORAGE_PREFILL_V14_KEY = 'fifa2026_prefill_applied_v14';
 const STORAGE_UI_KEY = 'fifa2026_ui_v1';
 const STORAGE_SNAPSHOTS_KEY = 'fifa2026_snapshots_v1';
 const SNAPSHOT_RETENTION = 60; // keep last 60 daily snapshots
@@ -149,6 +150,14 @@ function loadState() {
     replacePrefill();
     saveState();
     localStorage.setItem(STORAGE_PREFILL_V13_KEY, '1');
+  }
+
+  // V14 migration: swap batch 15 received (+BIH9/16, SCO3, AUS17, ESP18).
+  // POR5/13/18 received but NOT tracked here — user collects Portugal separately.
+  if (!localStorage.getItem(STORAGE_PREFILL_V14_KEY)) {
+    replacePrefill();
+    saveState();
+    localStorage.setItem(STORAGE_PREFILL_V14_KEY, '1');
   }
 }
 
